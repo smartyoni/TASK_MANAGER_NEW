@@ -19,7 +19,18 @@ export default defineConfig({
         display: 'standalone',
         scope: '/TASK_MANAGER_NEW/',
         start_url: '/TASK_MANAGER_NEW/',
-        icons: [],
+        icons: [
+          {
+            src: '/TASK_MANAGER_NEW/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/TASK_MANAGER_NEW/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
       },
     }),
   ],
