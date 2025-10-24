@@ -21,14 +21,16 @@ export default defineConfig({
         start_url: '/TASK_MANAGER_NEW/',
         icons: [
           {
-            src: '/TASK_MANAGER_NEW/icon-192.png',
+            src: 'icon-192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any maskable',
           },
           {
-            src: '/TASK_MANAGER_NEW/icon-512.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any maskable',
           },
         ],
       },
