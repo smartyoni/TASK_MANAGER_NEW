@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { TaskDetail } from '../types';
+import type { TaskDetail, ChecklistItem } from '../types';
 import { useTaskStore } from '../store/taskStore';
 import { db, taskDetailQueries } from '../db/db';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2, FileText } from 'lucide-react';
+import { PlanDetailModal } from './PlanDetailModal';
 
 interface WorkSpaceProps {
   taskId: string | null;
@@ -18,6 +19,7 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
 
   const task = taskId ? getTaskById(taskId) : null;
   const [autosaveTimeout, setAutosaveTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [planDetailModal, setPlanDetailModal] = useState<{ itemId: string; item: ChecklistItem } | null>(null);
 
   // 작업 상세 정보 로드
   useEffect(() => {
@@ -128,7 +130,112 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
     );
   }
 
-  // 패널 렌더링 헬퍼 함수
+  // 계획 패널 전용 렌더링 함수
+  const renderPlanPanel = () => {
+    const content = taskDetail.plan;
+
+    return (
+      <div className="flex-1 md:flex-none md:w-1/3 flex flex-col bg-white border-2 border-gray-400 rounded-lg overflow-hidden min-h-[400px] md:min-h-0">
+        {/* 패널 헤더 */}
+        <div className="px-4 py-3 bg-blue-100 border-blue-300 border-b-2">
+          <h3 className="font-bold text-sm text-gray-900">계획</h3>
+        </div>
+
+        {/* 패널 콘텐츠 - 체크리스트만 */}
+        <div className="flex-1 flex flex-col p-4 overflow-y-auto">
+          {/* 체크리스트 영역 */}
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-gray-700">계획 항목</p>
+              <button
+                onClick={() => {
+                  const newDetail = { ...taskDetail };
+                  const newId = Math.random().toString(36).substring(7);
+                  newDetail.plan.checklist.push({
+                    id: newId,
+                    text: '',
+                    completed: false,
+                    detailPlan: '',
+                  });
+                  setTaskDetail(newDetail);
+                }}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors px-2 py-1 hover:bg-blue-50 rounded"
+                title="새 계획 항목 추가"
+              >
+                <Plus size={16} />
+                항목 추가
+              </button>
+            </div>
+
+            {content.checklist.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                계획 항목을 추가해주세요
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {content.checklist.map((item) => (
+                  <div key={item.id} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border-2 border-gray-300 hover:border-blue-400 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={item.completed}
+                      onChange={(e) => {
+                        const newDetail = { ...taskDetail };
+                        const idx = newDetail.plan.checklist.findIndex(i => i.id === item.id);
+                        if (idx !== -1) {
+                          newDetail.plan.checklist[idx].completed = e.target.checked;
+                          setTaskDetail(newDetail);
+                        }
+                      }}
+                      className="w-5 h-5 cursor-pointer mt-0.5 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        value={item.text}
+                        onChange={(e) => {
+                          const newDetail = { ...taskDetail };
+                          const idx = newDetail.plan.checklist.findIndex(i => i.id === item.id);
+                          if (idx !== -1) {
+                            newDetail.plan.checklist[idx].text = e.target.value;
+                            setTaskDetail(newDetail);
+                          }
+                        }}
+                        className="w-full px-2 py-1 border-2 border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                        placeholder="계획 항목 입력..."
+                      />
+                      {item.detailPlan && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.detailPlan}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setPlanDetailModal({ itemId: item.id, item })}
+                      className="flex-shrink-0 p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                      title="상세 계획"
+                    >
+                      <FileText size={18} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newDetail = { ...taskDetail };
+                        newDetail.plan.checklist = newDetail.plan.checklist.filter(i => i.id !== item.id);
+                        setTaskDetail(newDetail);
+                      }}
+                      className="flex-shrink-0 p-2 text-red-600 hover:bg-red-100 rounded transition-colors"
+                      title="삭제"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 일반 패널 렌더링 헬퍼 함수
   const renderPanel = (title: string, content: typeof taskDetail.description) => {
     const headerColors = {
       '설명': 'bg-pink-100 border-pink-300',
@@ -279,9 +386,26 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
       {/* 3개 패널 그리드 - 모바일: 세로, 데스크톱: 가로 */}
       <div className="flex-1 flex flex-col md:flex-row gap-3 p-3 overflow-hidden overflow-y-auto md:overflow-y-hidden">
         {renderPanel('설명', taskDetail.description)}
-        {renderPanel('계획', taskDetail.plan)}
+        {renderPlanPanel()}
         {renderPanel('실행', taskDetail.execution)}
       </div>
+
+      {/* 상세 계획 모달 */}
+      {planDetailModal && (
+        <PlanDetailModal
+          itemText={planDetailModal.item.text}
+          detailPlan={planDetailModal.item.detailPlan || ''}
+          onSave={(detailPlan) => {
+            const newDetail = { ...taskDetail };
+            const idx = newDetail.plan.checklist.findIndex(i => i.id === planDetailModal.itemId);
+            if (idx !== -1) {
+              newDetail.plan.checklist[idx].detailPlan = detailPlan;
+              setTaskDetail(newDetail);
+            }
+          }}
+          onClose={() => setPlanDetailModal(null)}
+        />
+      )}
 
       {/* 푸터 - 저장 버튼 */}
       <div className="border-t-2 border-gray-300 p-3 md:p-4 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-2 flex-shrink-0">

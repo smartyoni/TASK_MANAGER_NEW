@@ -15,6 +15,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   completed: boolean;
+  detailPlan?: string; // 상세 계획 (옵션)
 }
 
 /**
