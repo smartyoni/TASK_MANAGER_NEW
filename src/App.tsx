@@ -12,6 +12,7 @@ function App() {
   const { loadTasks } = useTaskStore();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -64,12 +65,22 @@ function App() {
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* 상단 헤더 */}
-      <HeaderTabs />
+      <HeaderTabs
+        onMenuClick={() => setIsMobileSidebarOpen(true)}
+      />
 
       {/* 메인 콘텐츠 - 3칼럼 레이아웃 */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* 좌측 사이드바 */}
-        <Sidebar selectedTaskId={selectedTaskId} onTaskSelect={setSelectedTaskId} />
+        <Sidebar
+          selectedTaskId={selectedTaskId}
+          onTaskSelect={(taskId) => {
+            setSelectedTaskId(taskId);
+            setIsMobileSidebarOpen(false); // 모바일에서 작업 선택시 사이드바 닫기
+          }}
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileClose={() => setIsMobileSidebarOpen(false)}
+        />
 
         {/* 우측 작업 공간 */}
         <WorkSpace taskId={selectedTaskId} />

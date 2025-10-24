@@ -1,11 +1,15 @@
 import React from 'react';
 import { useCategoryStore } from '../store/categoryStore';
-import { Plus, X, Edit2 } from 'lucide-react';
+import { Plus, X, Edit2, Menu } from 'lucide-react';
+
+interface HeaderTabsProps {
+  onMenuClick?: () => void;
+}
 
 /**
  * 상단 헤더 - 최상위 카테고리 탭
  */
-export function HeaderTabs() {
+export function HeaderTabs({ onMenuClick }: HeaderTabsProps) {
   const { categories, selectedCategoryId, selectCategory, addCategory, deleteCategory, updateCategory } = useCategoryStore();
   const [contextMenu, setContextMenu] = React.useState<{ categoryId: string; x: number; y: number } | null>(null);
 
@@ -111,19 +115,29 @@ export function HeaderTabs() {
 
   return (
     <div className="bg-cyan-100 border-b-2 border-gray-400">
-      <div className="px-6 py-4">
-        <div className="flex items-center gap-6">
+      <div className="px-3 md:px-6 py-3 md:py-4">
+        <div className="flex items-center gap-3 md:gap-6">
+          {/* 햄버거 메뉴 (모바일만) */}
+          <button
+            onClick={onMenuClick}
+            className="md:hidden flex-shrink-0 p-2 hover:bg-cyan-200 rounded-lg transition-colors"
+            aria-label="메뉴 열기"
+          >
+            <Menu size={24} className="text-gray-900" />
+          </button>
+
           {/* 로고 - 좌측 정렬 */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <span>📋</span>
-              <span>Task Manager</span>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <span className="hidden sm:inline">📋</span>
+              <span className="hidden sm:inline">Task Manager</span>
+              <span className="sm:hidden">📋 TM</span>
             </h1>
           </div>
 
           {/* 카테고리 버튼 그룹 */}
           <div className="flex-1 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-3 inline-flex min-w-full">
+            <div className="flex items-center gap-2 md:gap-3 inline-flex min-w-full">
               {categories.map((category, index) => {
                 const isSelected = selectedCategoryId === category.id;
                 const classNames = getButtonClassNames(index, isSelected);
@@ -257,10 +271,10 @@ export function HeaderTabs() {
               {/* 추가 버튼 */}
               <button
                 onClick={handleAddCategory}
-                className="flex-shrink-0 flex items-center justify-center ml-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                className="flex-shrink-0 flex items-center justify-center ml-2 px-2 md:px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
                 title="카테고리 추가"
               >
-                <Plus size={20} />
+                <Plus size={20} className="md:w-5 md:h-5" />
               </button>
             </div>
           </div>
