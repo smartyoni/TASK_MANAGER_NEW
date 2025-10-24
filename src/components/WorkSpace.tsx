@@ -138,14 +138,14 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
     const headerColor = headerColors[title as keyof typeof headerColors] || 'bg-gray-50 border-gray-300';
 
     return (
-    <div className="flex-1 flex flex-col bg-white border-2 border-gray-400 rounded-lg overflow-hidden">
+    <div className="flex-1 md:flex-none md:w-1/3 flex flex-col bg-white border-2 border-gray-400 rounded-lg overflow-hidden min-h-[400px] md:min-h-0">
       {/* 패널 헤더 */}
       <div className={`px-4 py-3 ${headerColor} border-b-2`}>
         <h3 className="font-bold text-sm text-gray-900">{title}</h3>
       </div>
 
       {/* 패널 콘텐츠 */}
-      <div className="flex-1 flex flex-col p-4 overflow-hidden">
+      <div className="flex-1 flex flex-col p-4 overflow-hidden min-h-[300px]">
         {/* 텍스트 영역 */}
         <textarea
           value={content.text}
@@ -241,10 +241,10 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
   };
 
   return (
-    <div className="flex-1 bg-white border-l-2 border-gray-400 flex flex-col">
+    <div className="flex-1 bg-white md:border-l-2 border-gray-400 flex flex-col overflow-hidden">
       {/* 헤더 */}
-      <div className="border-b-2 border-gray-300 p-4 bg-gray-50">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">{task.title}</h2>
+      <div className="border-b-2 border-gray-300 p-3 md:p-4 bg-gray-50 flex-shrink-0">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">{task.title}</h2>
 
         {/* 진행률 */}
         <div className="mb-4">
@@ -276,22 +276,22 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
         )}
       </div>
 
-      {/* 3개 패널 그리드 */}
-      <div className="flex-1 flex gap-3 p-3 overflow-hidden">
+      {/* 3개 패널 그리드 - 모바일: 세로, 데스크톱: 가로 */}
+      <div className="flex-1 flex flex-col md:flex-row gap-3 p-3 overflow-hidden overflow-y-auto md:overflow-y-hidden">
         {renderPanel('설명', taskDetail.description)}
         {renderPanel('계획', taskDetail.plan)}
         {renderPanel('실행', taskDetail.execution)}
       </div>
 
       {/* 푸터 - 저장 버튼 */}
-      <div className="border-t-2 border-gray-300 p-4 bg-gray-50 flex items-center justify-between">
-        <span className="text-sm text-gray-500">
+      <div className="border-t-2 border-gray-300 p-3 md:p-4 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-2 flex-shrink-0">
+        <span className="text-xs md:text-sm text-gray-500 text-center sm:text-left">
           {isSaving ? '저장 중...' : '모든 변경사항이 자동 저장됩니다'}
         </span>
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors font-medium"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors font-medium"
         >
           <Save size={18} />
           저장

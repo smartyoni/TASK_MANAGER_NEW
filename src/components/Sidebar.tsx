@@ -23,6 +23,8 @@ import { CSS } from '@dnd-kit/utilities';
 interface SidebarProps {
   selectedTaskId: string | null;
   onTaskSelect: (taskId: string) => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 // 드래그 가능한 작업 항목 컴포넌트
@@ -105,7 +107,7 @@ function DraggableTaskItem({
 /**
  * 좌측 사이드바 - 선택된 카테고리의 작업 항목 리스트
  */
-export function Sidebar({ selectedTaskId, onTaskSelect }: SidebarProps) {
+export function Sidebar({ selectedTaskId, onTaskSelect, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const { selectedCategoryId } = useCategoryStore();
   const { getTasksByCategory, addTask, deleteTask, reorderTasks } = useTaskStore();
   const [newTaskName, setNewTaskName] = React.useState('');
@@ -184,9 +186,26 @@ export function Sidebar({ selectedTaskId, onTaskSelect }: SidebarProps) {
 
   if (!selectedCategoryId) {
     return (
-      <div className="w-64 bg-gray-50 border-r-2 border-gray-400 p-6 flex items-center justify-center">
-        <p className="text-gray-500 text-center">카테고리를 선택해주세요</p>
-      </div>
+      <>
+        {/* 모바일 오버레이 */}
+        {isMobileOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={onMobileClose}
+          />
+        )}
+
+        {/* 사이드바 */}
+        <div className={`
+          fixed md:static inset-y-0 left-0 z-50
+          w-64 md:w-64 bg-gray-50 border-r-2 border-gray-400 p-6
+          flex items-center justify-center
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
+          <p className="text-gray-500 text-center">카테고리를 선택해주세요</p>
+        </div>
+      </>
     );
   }
 
@@ -199,11 +218,35 @@ export function Sidebar({ selectedTaskId, onTaskSelect }: SidebarProps) {
   }, [contextMenu]);
 
   return (
-    <div className="w-64 bg-white border-r-2 border-gray-400 flex flex-col overflow-hidden">
-      {/* 헤더 */}
-      <div className="p-4 border-b-2 border-gray-300 bg-orange-100">
-        <h2 className="font-bold text-gray-900 text-sm">작업 항목 ({tasks.length})</h2>
-      </div>
+    <>
+      {/* 모바일 오버레이 */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* 사이드바 */}
+      <div className={`
+        fixed md:static inset-y-0 left-0 z-50
+        w-80 md:w-64 bg-white border-r-2 border-gray-400
+        flex flex-col overflow-hidden
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* 헤더 */}
+        <div className="p-4 border-b-2 border-gray-300 bg-orange-100 flex items-center justify-between">
+          <h2 className="font-bold text-gray-900 text-sm">작업 항목 ({tasks.length})</h2>
+          {/* 모바일 닫기 버튼 */}
+          <button
+            onClick={onMobileClose}
+            className="md:hidden p-1 hover:bg-orange-200 rounded transition-colors"
+            aria-label="사이드바 닫기"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
       {/* 작업 리스트 */}
       <DndContext
@@ -301,6 +344,7 @@ export function Sidebar({ selectedTaskId, onTaskSelect }: SidebarProps) {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
