@@ -109,7 +109,7 @@ function DraggableTaskItem({
  */
 export function Sidebar({ selectedTaskId, onTaskSelect, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const { selectedCategoryId } = useCategoryStore();
-  const { getTasksByCategory, addTask, deleteTask, reorderTasks } = useTaskStore();
+  const { getTasksByCategory, addTask, deleteTask, reorderTasks, updateTask } = useTaskStore();
   const [newTaskName, setNewTaskName] = React.useState('');
   const [contextMenu, setContextMenu] = React.useState<{ taskId: string; x: number; y: number } | null>(null);
 
@@ -152,13 +152,17 @@ export function Sidebar({ selectedTaskId, onTaskSelect, isMobileOpen = false, on
     setContextMenu({ taskId, x: e.clientX, y: e.clientY });
   };
 
-  const handleEditTask = (taskId: string) => {
+  const handleEditTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     const newTitle = prompt('작업 항목명 수정:', task.title);
-    if (newTitle && newTitle.trim()) {
-      // 작업 항목 수정 기능 (추후 구현)
-      console.log('Edit task:', taskId, newTitle);
+    if (newTitle && newTitle.trim() && newTitle !== task.title) {
+      try {
+        await updateTask(taskId, { title: newTitle.trim() });
+      } catch (error) {
+        console.error('작업 항목 수정 실패:', error);
+        alert('수정에 실패했습니다.');
+      }
     }
     setContextMenu(null);
   };
