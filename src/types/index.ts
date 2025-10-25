@@ -15,6 +15,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   completed: boolean;
+  detail?: string; // 상세내용 (선택사항)
 }
 
 /**
@@ -31,7 +32,6 @@ export interface TaskSection {
 export interface TaskDetail {
   id: string;
   taskId: string;
-  description: TaskSection;
   plan: TaskSection;
   execution: TaskSection;
   updatedAt: string;
