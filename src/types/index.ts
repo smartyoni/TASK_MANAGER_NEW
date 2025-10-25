@@ -32,6 +32,7 @@ export interface TaskSection {
 export interface TaskDetail {
   id: string;
   taskId: string;
+  description?: string; // 설명 (읽기 전용, 선택사항)
   plan: TaskSection;
   execution: TaskSection;
   updatedAt: string;

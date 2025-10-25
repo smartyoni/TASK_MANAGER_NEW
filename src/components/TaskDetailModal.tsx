@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Task, TaskDetail, Priority } from '../types';
 import { useTaskStore } from '../store/taskStore';
 import { taskDetailQueries } from '../db/db';
+import { convertLinksToElementsWithLineBreaks } from '../utils/linkConverter';
 import { X, Save } from 'lucide-react';
 
 interface TaskDetailModalProps {
@@ -19,6 +20,9 @@ export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
   const [progress, setProgress] = useState(task.progress);
   const [dueDate, setDueDate] = useState(task.dueDate || '');
   const [priority, setPriority] = useState<Priority>(task.priority);
+  const [description, setDescription] = useState('');
+  const [plan, setPlan] = useState('');
+  const [execution, setExecution] = useState('');
   const [activeTab, setActiveTab] = useState<'description' | 'plan' | 'execution'>('description');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -28,6 +32,11 @@ export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
     const loadDetail = async () => {
       const detail = await taskDetailQueries.getByTaskId(task.id);
       setTaskDetail(detail || null);
+      if (detail) {
+        setDescription(detail.description || '');
+        setPlan(detail.plan.text || '');
+        setExecution(detail.execution.text || '');
+      }
     };
     loadDetail();
   }, [task.id]);
@@ -41,6 +50,16 @@ export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
         dueDate: dueDate || null,
         priority,
       });
+
+      // 상세 정보 저장 (설명, 계획, 실행)
+      if (taskDetail) {
+        await taskDetailQueries.update(task.id, {
+          description,
+          plan: { ...taskDetail.plan, text: plan },
+          execution: { ...taskDetail.execution, text: execution },
+        });
+      }
+
       setSaveMessage('저장됨 ✓');
       setTimeout(() => setSaveMessage(''), 2000);
     } catch (error) {
@@ -191,18 +210,89 @@ export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
             {/* 탭 콘텐츠 */}
             {taskDetail && (
               <div className="mt-4">
-                <textarea
-                  value={
-                    activeTab === 'plan'
-                      ? taskDetail.plan.text
-                      : taskDetail.execution.text
-                  }
-                  onChange={() => {
-                    // TODO: 자동 저장 구현
-                  }}
-                  className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  placeholder={`${activeTab === 'description' ? '설명' : activeTab === 'plan' ? '계획' : '실행'} 내용을 입력하세요...`}
-                />
+                {/* 설명 탭 - 편집 모드 */}
+                {activeTab === 'description' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">입력</label>
+                      <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full h-24 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                        placeholder="설명을 입력하세요... (URL이 자동으로 링크로 변환됩니다)"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">미리보기</label>
+                      <div className="w-full min-h-24 p-4 border border-gray-300 rounded-lg bg-gray-50 text-sm leading-relaxed">
+                        {description ? (
+                          <div className="text-gray-800">
+                            {convertLinksToElementsWithLineBreaks(description)}
+                          </div>
+                        ) : (
+                          <p className="text-gray-400">입력한 내용이 여기에 표시됩니다.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 계획 탭 - 편집 모드 */}
+                {activeTab === 'plan' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">입력</label>
+                      <textarea
+                        value={plan}
+                        onChange={(e) => setPlan(e.target.value)}
+                        className="w-full h-24 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                        placeholder="계획을 입력하세요... (URL이 자동으로 링크로 변환됩니다)"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">미리보기</label>
+                      <div className="w-full min-h-24 p-4 border border-gray-300 rounded-lg bg-gray-50 text-sm leading-relaxed">
+                        {plan ? (
+                          <div className="text-gray-800">
+                            {convertLinksToElementsWithLineBreaks(plan)}
+                          </div>
+                        ) : (
+                          <p className="text-gray-400">입력한 내용이 여기에 표시됩니다.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 실행 탭 - 편집 모드 */}
+                {activeTab === 'execution' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">입력</label>
+                      <textarea
+                        value={execution}
+                        onChange={(e) => setExecution(e.target.value)}
+                        className="w-full h-24 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                        placeholder="실행을 입력하세요... (URL이 자동으로 링크로 변환됩니다)"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">미리보기</label>
+                      <div className="w-full min-h-24 p-4 border border-gray-300 rounded-lg bg-gray-50 text-sm leading-relaxed">
+                        {execution ? (
+                          <div className="text-gray-800">
+                            {convertLinksToElementsWithLineBreaks(execution)}
+                          </div>
+                        ) : (
+                          <p className="text-gray-400">입력한 내용이 여기에 표시됩니다.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
