@@ -193,9 +193,7 @@ export function TaskDetailModal({ task, onClose }: TaskDetailModalProps) {
               <div className="mt-4">
                 <textarea
                   value={
-                    activeTab === 'description'
-                      ? taskDetail.description.text
-                      : activeTab === 'plan'
+                    activeTab === 'plan'
                       ? taskDetail.plan.text
                       : taskDetail.execution.text
                   }

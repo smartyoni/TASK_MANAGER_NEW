@@ -27,7 +27,7 @@ interface WorkSpaceProps {
  * 중앙 작업 공간 - 계획 패널과 상세내용 입력창
  */
 export function WorkSpace({ taskId }: WorkSpaceProps) {
-  const { getTaskById, updateTaskProgress } = useTaskStore();
+  const { getTaskById } = useTaskStore();
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -123,7 +123,7 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
 
   // 상세내용 자동 저장
   useEffect(() => {
-    if (!selectedItemId) return;
+    if (!selectedItemId || !taskDetail) return;
 
     if (detailTimeout) {
       clearTimeout(detailTimeout);
@@ -131,10 +131,12 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
 
     const timeout = setTimeout(() => {
       const newDetail = { ...taskDetail };
-      const idx = newDetail.plan.checklist.findIndex(i => i.id === selectedItemId);
-      if (idx !== -1) {
-        newDetail.plan.checklist[idx].detail = selectedItemDetail;
-        setTaskDetail(newDetail);
+      if (newDetail.plan) {
+        const idx = newDetail.plan.checklist.findIndex(i => i.id === selectedItemId);
+        if (idx !== -1) {
+          newDetail.plan.checklist[idx].detail = selectedItemDetail;
+          setTaskDetail(newDetail);
+        }
       }
     }, 1000);
 
@@ -175,12 +177,6 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
     }
   };
 
-  const handleProgressChange = async (progress: number) => {
-    if (!task) return;
-    const roundedProgress = Math.round(progress / 10) * 10;
-    await updateTaskProgress(task.id, roundedProgress);
-  };
-
   // 드래그 앤 드롭 sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -212,11 +208,9 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
   // 드래그 가능한 체크리스트 항목 컴포넌트
   function DraggableChecklistItem({
     item,
-    title,
     panelKey,
   }: {
     item: any;
-    title: string;
     panelKey: 'plan' | 'execution';
   }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -233,12 +227,14 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
     };
 
     const handleSaveEdit = () => {
-      if (editText.trim()) {
+      if (editText.trim() && taskDetail) {
         const newDetail = { ...taskDetail };
-        const idx = newDetail[panelKey].checklist.findIndex(i => i.id === item.id);
-        if (idx !== -1) {
-          newDetail[panelKey].checklist[idx].text = editText.trim();
-          setTaskDetail(newDetail);
+        if (newDetail[panelKey]) {
+          const idx = newDetail[panelKey].checklist.findIndex(i => i.id === item.id);
+          if (idx !== -1) {
+            newDetail[panelKey].checklist[idx].text = editText.trim();
+            setTaskDetail(newDetail);
+          }
         }
       }
       setIsEditing(false);
@@ -294,11 +290,15 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
           type="checkbox"
           checked={item.completed}
           onChange={(e) => {
-            const newDetail = { ...taskDetail };
-            const idx = newDetail[panelKey].checklist.findIndex(i => i.id === item.id);
-            if (idx !== -1) {
-              newDetail[panelKey].checklist[idx].completed = e.target.checked;
-              setTaskDetail(newDetail);
+            if (taskDetail) {
+              const newDetail = { ...taskDetail };
+              if (newDetail[panelKey]) {
+                const idx = newDetail[panelKey].checklist.findIndex(i => i.id === item.id);
+                if (idx !== -1) {
+                  newDetail[panelKey].checklist[idx].completed = e.target.checked;
+                  setTaskDetail(newDetail);
+                }
+              }
             }
           }}
           className="w-4 h-4 cursor-pointer flex-shrink-0 ml-1"
@@ -394,7 +394,6 @@ export function WorkSpace({ taskId }: WorkSpaceProps) {
                     <DraggableChecklistItem
                       key={item.id}
                       item={item}
-                      title={title}
                       panelKey={panelKey}
                     />
                   ))

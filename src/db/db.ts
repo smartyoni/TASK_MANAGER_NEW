@@ -114,7 +114,6 @@ export const taskQueries = {
     // 업무 생성 시 상세 정보도 자동 생성
     await taskDetailQueries.create({
       taskId: id,
-      description: { text: '', checklist: [] },
       plan: { text: '', checklist: [] },
       execution: { text: '', checklist: [] },
       updatedAt: new Date().toISOString(),
