@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: [],
+      includeAssets: ['icon-192.png', 'icon-512.png', 'favicon.ico'],
       manifest: {
         name: 'Task Manager',
         short_name: 'Tasks',
@@ -21,14 +21,16 @@ export default defineConfig({
         start_url: '/TASK_MANAGER_NEW/',
         icons: [
           {
-            src: '/icon-192.png',
+            src: '/TASK_MANAGER_NEW/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any maskable',
           },
           {
-            src: '/icon-512.png',
+            src: '/TASK_MANAGER_NEW/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any maskable',
           },
         ],
       },
